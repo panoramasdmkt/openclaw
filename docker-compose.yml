@@ -23,7 +23,7 @@ services:
       - /root/openclaw-data/config:/home/node/.openclaw
       - /root/openclaw-data/workspace:/home/node/.openclaw/workspace
 
-    ccommand: ["node", "openclaw.mjs", "gateway", "--bind", "lan", "--allow-unconfigured"]
+    command: ["node", "openclaw.mjs", "gateway", "--bind", "lan", "--allow-unconfigured"]
       
 
 networks:
