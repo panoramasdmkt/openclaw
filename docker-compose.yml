@@ -13,6 +13,7 @@ services:
       - NODE_ENV=production
       - OPENCLAW_GATEWAY_BIND=0.0.0.0
       - OPENCLAW_GATEWAY_PORT=18789
+      - OPENCLAW_GATEWAY_TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
       - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}
       - INSTAGRAM_TOKEN=${INSTAGRAM_TOKEN}
@@ -23,7 +24,7 @@ services:
       - /root/openclaw-data/config:/home/node/.openclaw
       - /root/openclaw-data/workspace:/home/node/.openclaw/workspace
 
-    command: ["node", "openclaw.mjs", "gateway", "--bind", "lan", "--allow-unconfigured", "--trusted-proxies", "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"]
+    command: ["node", "openclaw.mjs", "gateway", "--bind", "lan", "--allow-unconfigured"]
       
 
 networks:
