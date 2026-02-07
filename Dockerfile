@@ -8,13 +8,27 @@ RUN corepack enable
 
 WORKDIR /app
 
-ARG OPENCLAW_DOCKER_APT_PACKAGES=""
-RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
-      apt-get update && \
-      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $OPENCLAW_DOCKER_APT_PACKAGES && \
-      apt-get clean && \
-      rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
-    fi
+# --- MODIFICACION: Instalación de dependencias del sistema requeridas ---
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    socat curl ca-certificates tar && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
+# --- MODIFICACION: Instalar Binarios (GOG, WACLI, GOPLACES) ---
+# Gmail CLI
+RUN curl -L https://github.com/steipete/gog/releases/latest/download/gog_Linux_x86_64.tar.gz \
+  | tar -xz -C /usr/local/bin && chmod +x /usr/local/bin/gog
+
+# WhatsApp CLI
+RUN curl -L https://github.com/steipete/wacli/releases/latest/download/wacli_Linux_x86_64.tar.gz \
+  | tar -xz -C /usr/local/bin && chmod +x /usr/local/bin/wacli
+
+# Google Places CLI
+RUN curl -L https://github.com/steipete/goplaces/releases/latest/download/goplaces_Linux_x86_64.tar.gz \
+  | tar -xz -C /usr/local/bin && chmod +x /usr/local/bin/goplaces
+
+# --- FIN MODIFICACION ---
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json
@@ -35,14 +49,9 @@ ENV NODE_ENV=production
 RUN chown -R node:node /app
 
 # Security hardening: Run as non-root user
-# The node:22-bookworm image includes a 'node' user (uid 1000)
-# This reduces the attack surface by preventing container escape via root privileges
 USER node
 
-# Start gateway server with default config.
-# Binds to loopback (127.0.0.1) by default for security.
-#
-# For container platforms requiring external health checks:
-#   1. Set OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD env var
-#   2. Override CMD: ["node","openclaw.mjs","gateway","--allow-unconfigured","--bind","lan"]
-CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
+# Start gateway server. 
+# IMPORTANTE: Dokploy necesita que escuche en 0.0.0.0 para que Traefik pueda redirigir el tráfico.
+# Sobreescribiremos esto en el docker-compose, pero dejamos un default sensato.
+CMD ["node", "openclaw.mjs", "gateway", "--bind", "0.0.0.0"]
